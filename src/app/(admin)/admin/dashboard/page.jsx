@@ -1,54 +1,89 @@
-export const metadata = {
-  title: "Admin Dashboard | Real Estate Website",
-  description: "Admin dashboard for managing the real estate platform",
-};
+"use client";
 
+import { useState, useEffect } from "react";
 import { getAdminDashboardData } from "../../../../utils/api";
 
-// Server component to fetch dashboard stats
-async function getDashboardStats() {
-  try {
-    const response = await getAdminDashboardData();
+// Prevent static generation for this page
+export const dynamic = "force-dynamic";
 
-    if (!response.success) {
-      throw new Error("Failed to fetch dashboard data");
-    }
+export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalLands: 0,
+    totalPayments: 0,
+    recentUsers: [],
+    recentPayments: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    const { data } = response;
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const response = await getAdminDashboardData();
 
-    return {
-      totalUsers: data.counts.users,
-      totalLands: data.counts.properties,
-      totalPayments: data.counts.payments,
-      recentUsers: data.recentUsers.map((user) => ({
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        date: new Date(user.createdAt).toISOString().split("T")[0],
-      })),
-      recentPayments: data.recentPayments.map((payment) => ({
-        id: payment._id,
-        user: payment.userId ? payment.userId.name : "Unknown User",
-        amount: payment.amount,
-        date: new Date(payment.paymentDate).toISOString().split("T")[0],
-        status: payment.status,
-      })),
+        if (!response.success) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+
+        const { data } = response;
+
+        setStats({
+          totalUsers: data.counts.users,
+          totalLands: data.counts.properties,
+          totalPayments: data.counts.payments,
+          recentUsers: data.recentUsers.map((user) => ({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            date: new Date(user.createdAt).toISOString().split("T")[0],
+          })),
+          recentPayments: data.recentPayments.map((payment) => ({
+            id: payment._id,
+            user: payment.userId ? payment.userId.name : "Unknown User",
+            amount: payment.amount,
+            date: new Date(payment.paymentDate).toISOString().split("T")[0],
+            status: payment.status,
+          })),
+        });
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
     };
-  } catch (error) {
-    console.error("Error fetching dashboard data:", error);
-    // Return fallback data in case of error
-    return {
-      totalUsers: 0,
-      totalLands: 0,
-      totalPayments: 0,
-      recentUsers: [],
-      recentPayments: [],
-    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
   }
-}
 
-export default async function AdminDashboard() {
-  const stats = await getDashboardStats();
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            Error Loading Dashboard
+          </h2>
+          <p className="text-gray-600">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-hover"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

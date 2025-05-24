@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSpinner from "../../../../components/Shared/LoadingSpinner";
 
-export default function AvailableLandsRedirect() {
+// Prevent static generation for this page
+export const dynamic = "force-dynamic";
+
+function AvailableLandsRedirectContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -44,5 +47,20 @@ export default function AvailableLandsRedirect() {
       <h1 className="text-2xl font-bold mb-8">Redirecting to Portfolio...</h1>
       <LoadingSpinner text="Please wait while we redirect you to our new Portfolio page" />
     </div>
+  );
+}
+
+export default function AvailableLandsRedirect() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-12 text-center">
+          <h1 className="text-2xl font-bold mb-8">Loading...</h1>
+          <LoadingSpinner text="Please wait" />
+        </div>
+      }
+    >
+      <AvailableLandsRedirectContent />
+    </Suspense>
   );
 }

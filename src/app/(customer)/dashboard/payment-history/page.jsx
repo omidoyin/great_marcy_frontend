@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Cookies from "js-cookie";
 
-export default function PaymentHistory() {
+// Prevent static generation for this page
+export const dynamic = "force-dynamic";
+
+function PaymentHistoryContent() {
   const [payments, setPayments] = useState([]);
   const [filteredPayments, setFilteredPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -682,5 +685,22 @@ export default function PaymentHistory() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PaymentHistory() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-3xl font-bold mb-8">Payment History</h1>
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      }
+    >
+      <PaymentHistoryContent />
+    </Suspense>
   );
 }

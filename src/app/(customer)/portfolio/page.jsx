@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import SearchFilters from "../../../components/Lands/SearchFilters";
@@ -8,6 +8,9 @@ import LoadingSpinner from "../../../components/Shared/LoadingSpinner";
 import { useToast } from "../../../hooks/useToast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getPortfolioPageData } from "../../../utils/api";
+
+// Prevent static generation for this page
+export const dynamic = "force-dynamic";
 
 // Function to fetch data based on service type with server-side pagination and filtering
 async function fetchDataFromAPI(serviceType, filters, page = 1, limit = 6) {
@@ -64,7 +67,7 @@ async function fetchDataFromAPI(serviceType, filters, page = 1, limit = 6) {
   }
 }
 
-export default function Portfolio() {
+function PortfolioContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
@@ -641,5 +644,22 @@ export default function Portfolio() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function Portfolio() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold mb-8 text-center">Our Portfolio</h1>
+          <div className="flex justify-center items-center h-64">
+            <LoadingSpinner text="Loading portfolio..." />
+          </div>
+        </div>
+      }
+    >
+      <PortfolioContent />
+    </Suspense>
   );
 }
